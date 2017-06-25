@@ -1,12 +1,14 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using InvertedxAPI.Models;
-using InvertedxAPI.Services;
-using Moq;
-using System.Net.Http;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using InvertedxAPI.Collections;
+using InvertedxAPI.Models;
+using InvertedxAPI.Services;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
 
 namespace InvertedxAPITests
 {
@@ -73,6 +75,20 @@ namespace InvertedxAPITests
             });
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void BuildInvertedIndex()
+        {
+            string content = "included definitely in";
+            Website web = new Website { Url = testUrl };
+            var index = new InvertedIndex<Website>();
+            processor.PopulateIndex(index, content, web);
+
+            foreach (var word in content.Split(' '))
+            {
+                Assert.IsTrue(index.ContainsKey(word));
+            }
         }
     }
 }

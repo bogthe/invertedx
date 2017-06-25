@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using InvertedxAPI.Collections;
 using InvertedxAPI.Models;
 
 namespace InvertedxAPI.Services
@@ -14,6 +16,11 @@ namespace InvertedxAPI.Services
             httpClient = client;
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
         public string GetWebsiteContent(Website website, Func<string, string> extractor)
         {
             if(website == null || extractor == null)
@@ -24,6 +31,20 @@ namespace InvertedxAPI.Services
 
             return extractor.Invoke(content);
         }
+        
+        public void PopulateIndex(InvertedIndex<Website> index, string content, Website web)
+        {
+            foreach(var word in content.Split(' '))
+            {
+                string key = ProcessKey(word);
+                if(!index.ContainsKey(key))
+                    index.Add(key, new HashSet<Website>());
+                
+                index[key].Add(web);
+            }
+        }
+
+        private string ProcessKey(string key) => key.ToLower();
 
         private void Dispose(bool disposing)
         {
@@ -36,11 +57,6 @@ namespace InvertedxAPI.Services
 
                 disposedValue = true;
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
         }
     }
 }

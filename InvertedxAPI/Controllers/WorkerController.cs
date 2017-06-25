@@ -26,8 +26,11 @@ namespace InvertedxAPI.Controllers
                 Website website = repository[id];
                 if (website == null)
                     return string.Empty;
-
-                return worker.GetWebsiteContent(website, ContentProcessor);
+                
+                string websiteContent = worker.GetWebsiteContent(website, ContentProcessor);
+                worker.PopulateIndex(repository.Index, websiteContent, website);
+                
+                return "Processed";
             }
         }
 
