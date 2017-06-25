@@ -19,7 +19,7 @@ It takes in URLs, processes their content and creates an inverted index based on
 - GET `/api/worker/{id}` returns the text inside of `<p>` tags from the website with the specified id;
 
 ### Content Processor
-- Returns text inside of <p> tags from websites;
+- Returns text inside of `<p>` tags from websites;
 
 ## Roadmap
 - Create the actual inverted index data structure;
