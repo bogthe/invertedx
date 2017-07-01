@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using InvertedxAPI.Collections;
 
@@ -5,12 +6,12 @@ namespace InvertedxAPI.Models
 {
     public class MemoryRepository : IRepository
     {
-        private Dictionary<int, Website> items;
+        private Dictionary<string, Website> items;
         private InvertedIndex<Website> index;
 
         public MemoryRepository()
         {
-            items = new Dictionary<int, Website>();
+            items = new Dictionary<string, Website>();
             index = new InvertedIndex<Website>();
 
             new List<Website>
@@ -20,7 +21,7 @@ namespace InvertedxAPI.Models
             }.ForEach(w => AddWebsiteSource(w));
         }
 
-        public Website this[int id] => items.ContainsKey(id) ? items[id] : null;
+        public Website this[string id] => items.ContainsKey(id) ? items[id] : null;
 
         public IEnumerable<Website> WebsiteCollection => items.Values;
 
@@ -28,12 +29,11 @@ namespace InvertedxAPI.Models
 
         public Website AddWebsiteSource(Website website)
         {
-            if (website.Id == 0)
+            if (string.IsNullOrEmpty(website.Id))
             {
-                int id = items.Count == 0 ? 1 : items.Count;
-                while (items.ContainsKey(id)) { id++; }
-                website.Id = id;
+                website.Id = Guid.NewGuid().ToString();
             }
+
             items[website.Id] = website;
             return website;
         }
@@ -41,6 +41,6 @@ namespace InvertedxAPI.Models
         public Website UpdateWebsiteSource(Website website)
             => AddWebsiteSource(website);
 
-        public void DeleteWebsiteSource(int id) => items.Remove(id);
+        public void DeleteWebsiteSource(Website website) => items.Remove(website.Id);
     }
 }

@@ -1,32 +1,34 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using InvertedxAPI.Models;
+using System.Threading.Tasks;
 
 namespace InvertedxAPI.Controllers
 {
     [Route("api/[controller]")]
     public class WebsiteController : Controller
     {
-        private IRepository repository { get; set; }
+        private IAsyncRepository repository { get; set; }
 
-        public WebsiteController(IRepository repo)
+        public WebsiteController(IAsyncRepository repo)
         {
             repository = repo;
+            repository.Initialisation.Wait();
         }
 
         [HttpGet]
-        public IEnumerable<Website> Get() => repository.WebsiteCollection;
+        public async Task<List<Website>> Get() => await repository.Collection;
 
         [HttpGet("{id}")]
-        public Website Get(int id) => repository[id];
+        public async Task<Website> Get(string id) => await repository[id];
 
         [HttpPost]
-        public Website Post([FromBody]Website website) => repository.AddWebsiteSource(website);
+        public async Task<Website> Post([FromBody]Website website) => await repository.AddWebsite(website);
 
         [HttpPut]
-        public Website Put([FromBody]Website website) => repository.UpdateWebsiteSource(website);
+        public async Task<Website> Put([FromBody]Website website) => await repository.UpdateWebsite(website);
 
         [HttpDelete("{id}")]
-        public void Delete(int id) => repository.DeleteWebsiteSource(id);
+        public async Task Delete(Website website) => await repository.DeleteWebsite(website);
     }
 }

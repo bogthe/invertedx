@@ -2,6 +2,7 @@ namespace InvertedxAPI.Controllers
 {
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Models;
     using Services;
@@ -9,28 +10,30 @@ namespace InvertedxAPI.Controllers
     [Route("api/[controller]")]
     public class WorkerController : Controller
     {
-        private IRepository repository { get; set; }
+        private IAsyncRepository repository { get; set; }
         private IHttpHandler httpHandler;
 
-        public WorkerController(IRepository repo)
+        public WorkerController(IAsyncRepository repo)
         {
             repository = repo;
             httpHandler = new HttpHandler();
+            repository.Initialisation.Wait();
         }
 
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<IActionResult> Get(string id)
         {
             using (var worker = new ProcessorWorker(httpHandler))
             {
-                Website website = repository[id];
+                Website website = await repository[id];
                 if (website == null)
-                    return string.Empty;
-                
-                string websiteContent = worker.GetWebsiteContent(website, ContentProcessor);
+                    return NotFound();
+
+                string websiteContent = await worker.GetWebsiteContent(website, ContentProcessor);
                 worker.PopulateIndex(repository.Index, websiteContent, website);
-                
-                return "Processed";
+                await repository.UpdateWebsite(website);
+
+                return Ok();
             }
         }
 
@@ -42,7 +45,7 @@ namespace InvertedxAPI.Controllers
 
             foreach (System.Text.RegularExpressions.Match match in matches)
             {
-                content.Add(Regex.Replace(match.Groups[1].Value,"<[^>]*>",""));
+                content.Add(Regex.Replace(match.Groups[1].Value, "<[^>]*>", ""));
             }
 
             return string.Join(" ", content);

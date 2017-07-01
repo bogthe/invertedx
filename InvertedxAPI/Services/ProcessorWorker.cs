@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using InvertedxAPI.Collections;
 using InvertedxAPI.Models;
 
@@ -21,12 +22,12 @@ namespace InvertedxAPI.Services
             Dispose(true);
         }
 
-        public string GetWebsiteContent(Website website, Func<string, string> extractor)
+        public async Task<string> GetWebsiteContent(Website website, Func<string, string> extractor)
         {
             if(website == null || extractor == null)
                 return string.Empty;
             
-            string content = httpClient.GetUrlContentAsync(website.Url).Result;
+            string content = await httpClient.GetUrlContentAsync(website.Url);
             website.Processed = true;
 
             return extractor.Invoke(content);

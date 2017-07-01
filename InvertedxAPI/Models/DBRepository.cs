@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using InvertedxAPI.Collections;
@@ -13,91 +14,58 @@ using Microsoft.Extensions.Options;
 
 namespace InvertedxAPI.Models
 {
-    public class DBRepository : IRepository
+    public class DBRepository : IAsyncRepository
     {
-        private const string TABLE_NAME = "Websites";
-        private readonly AWSOptions options;
+        public const string TABLE_NAME = "Websites";
         private readonly AmazonDynamoDBClient client;
-        private DynamoDBContext context;
+        private readonly DynamoDBContext context;
+        private readonly List<ScanCondition> scanConditions;
+        private InvertedIndex<Website> index;
 
         public DBRepository(IOptions<AWSOptions> options)
         {
-            this.options = options.Value;
-            client = CreateNewClient();
-            InitializeTable();
-        }
+            index = new InvertedIndex<Website>();
 
-        public Website this[int id] => GetItem(id).Result;
+            var credentials = new BasicAWSCredentials(options.Value.AwsAccessKey, options.Value.AwsSecretKey);
+            client = new AmazonDynamoDBClient(credentials, RegionEndpoint.EUWest1);
+            context = new DynamoDBContext(client);
 
-        public IEnumerable<Website> WebsiteCollection => throw new NotImplementedException();
-
-        public InvertedIndex<Website> Index => throw new NotImplementedException();
-
-        public Website AddWebsiteSource(Website website)
-        {
-            SaveItem(website);
-            return website;
-        }
-
-        public void DeleteWebsiteSource(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Website UpdateWebsiteSource(Website website)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async void SaveItem(Website website)
-        {
-            await client.PutItemAsync(
-                TABLE_NAME,
-                item: new Dictionary<string, AttributeValue>()
-                {
-                    {"WebId", new AttributeValue{S = website.Id.ToString()}},
-                    {"Url", new AttributeValue{S = website.Url}},
-                    {"Processed", new AttributeValue{S = website.Processed.ToString()}}
-                }
-            );
-        }
-
-        private async Task<Website> GetItem(int id)
-        {
-            var result = await client.GetItemAsync(
-                TABLE_NAME,
-                key: new Dictionary<string, AttributeValue>
-                {
-                    {"WebId", new AttributeValue{S = id.ToString()}}
-                }
-            );
-
-            Website website = new Website()
+            scanConditions = new List<ScanCondition>
             {
-                Id = Convert.ToInt32(result.Item["WebId"].S),
-                Url = result.Item["Url"].S,
-                Processed = Convert.ToBoolean(result.Item["Processed"].S)
+                new ScanCondition("Id", ScanOperator.IsNotNull)
             };
 
+            Initialisation = CheckTable();
+        }
+
+        public Task<Website> this[string id] => context.LoadAsync<Website>(id);
+
+        public InvertedIndex<Website> Index => index;
+
+        public Task Initialisation { get; private set; }
+
+        public Task<List<Website>> Collection => context.ScanAsync<Website>(scanConditions).GetRemainingAsync();
+
+        public async Task<Website> AddWebsite(Website website)
+        {
+            if (string.IsNullOrEmpty(website.Id))
+                website.Id = Guid.NewGuid().ToString();
+
+            await context.SaveAsync<Website>(website);
             return website;
         }
 
-        private AmazonDynamoDBClient CreateNewClient()
-        {
-            var credentials = new BasicAWSCredentials(
-                options.AwsAccessKey, options.AwsSecretKey
-            );
+        public Task DeleteWebsite(Website website) => context.DeleteAsync<Website>(website);
 
-            return new AmazonDynamoDBClient(credentials, RegionEndpoint.EUWest1);
-        }
+        public Task<Website> UpdateWebsite(Website website) => AddWebsite(website);
 
-        private async void InitializeTable()
+        private async Task CheckTable()
         {
             var tableList = await client.ListTablesAsync();
             if (!tableList.TableNames.Contains(TABLE_NAME))
                 await CreateTable();
-
-            await WaitForTableToBeActive();
+            else
+                await WaitForActiveTable();
         }
 
         private async Task CreateTable()
@@ -106,28 +74,34 @@ namespace InvertedxAPI.Models
                 TABLE_NAME,
                 keySchema: new List<KeySchemaElement>
                 {
-                    new KeySchemaElement("WebId", KeyType.HASH)
+                    new KeySchemaElement
+                    {
+                        AttributeName = "Id",
+                        KeyType = KeyType.HASH
+                    }
                 },
                 attributeDefinitions: new List<AttributeDefinition>
                 {
-                    new AttributeDefinition("WebId", ScalarAttributeType.S)
+                    new AttributeDefinition
+                    {
+                        AttributeName = "Id",
+                        AttributeType = ScalarAttributeType.S
+                    }
                 },
-                provisionedThroughput: new ProvisionedThroughput
-                {
-                    ReadCapacityUnits = 1,
-                    WriteCapacityUnits = 1
-                }
+                provisionedThroughput: new ProvisionedThroughput(1, 1)
             );
+
+            await WaitForActiveTable();
         }
 
-        private async Task WaitForTableToBeActive()
+        private async Task WaitForActiveTable()
         {
-            bool isTableActive = false;
-            while (!isTableActive)
+            var result = await client.DescribeTableAsync(TABLE_NAME);
+            var isActive = result.Table.TableStatus == "ACTIVE";
+            if (!isActive)
             {
-                var tableStatus = await client.DescribeTableAsync(TABLE_NAME);
-                isTableActive = tableStatus.Table.TableStatus == "ACTIVE";
                 Thread.Sleep(1000);
+                await WaitForActiveTable();
             }
         }
     }

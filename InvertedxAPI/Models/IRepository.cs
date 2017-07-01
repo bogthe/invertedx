@@ -7,10 +7,10 @@ namespace InvertedxAPI.Models
     {
         IEnumerable<Website> WebsiteCollection { get; }
         InvertedIndex<Website> Index { get; }
-        Website this[int id] { get; }
+        Website this[string id] { get; }
 
         Website AddWebsiteSource(Website website);
         Website UpdateWebsiteSource(Website website);
-        void DeleteWebsiteSource(int id);
+        void DeleteWebsiteSource(Website website);
     }
 }

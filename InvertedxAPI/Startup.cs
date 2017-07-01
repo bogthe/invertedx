@@ -32,7 +32,7 @@ namespace InvertedxAPI
         {
             services.AddOptions();
             services.Configure<AWSOptions>(Configuration);
-            services.AddSingleton<IRepository, DBRepository>();
+            services.AddSingleton<IAsyncRepository, DBRepository>();
             services.AddMvc();
         }
 
