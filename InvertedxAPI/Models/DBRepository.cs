@@ -24,10 +24,10 @@ namespace InvertedxAPI.Models
         {
             this.options = options.Value;
             client = CreateNewClient();
-            InitializeContext();
+            InitializeTable();
         }
 
-        public Website this[int id] => new Website() { Id = 0, Url = $"{options.AwsAccessKey} / {options.AwsSecretKey}" };
+        public Website this[int id] => GetItem(id).Result;
 
         public IEnumerable<Website> WebsiteCollection => throw new NotImplementedException();
 
@@ -35,7 +35,8 @@ namespace InvertedxAPI.Models
 
         public Website AddWebsiteSource(Website website)
         {
-            throw new NotImplementedException();
+            SaveItem(website);
+            return website;
         }
 
         public void DeleteWebsiteSource(int id)
@@ -48,6 +49,39 @@ namespace InvertedxAPI.Models
             throw new NotImplementedException();
         }
 
+        private async void SaveItem(Website website)
+        {
+            await client.PutItemAsync(
+                TABLE_NAME,
+                item: new Dictionary<string, AttributeValue>()
+                {
+                    {"WebId", new AttributeValue{S = website.Id.ToString()}},
+                    {"Url", new AttributeValue{S = website.Url}},
+                    {"Processed", new AttributeValue{S = website.Processed.ToString()}}
+                }
+            );
+        }
+
+        private async Task<Website> GetItem(int id)
+        {
+            var result = await client.GetItemAsync(
+                TABLE_NAME,
+                key: new Dictionary<string, AttributeValue>
+                {
+                    {"WebId", new AttributeValue{S = id.ToString()}}
+                }
+            );
+
+            Website website = new Website()
+            {
+                Id = Convert.ToInt32(result.Item["WebId"].S),
+                Url = result.Item["Url"].S,
+                Processed = Convert.ToBoolean(result.Item["Processed"].S)
+            };
+
+            return website;
+        }
+
         private AmazonDynamoDBClient CreateNewClient()
         {
             var credentials = new BasicAWSCredentials(
@@ -57,14 +91,13 @@ namespace InvertedxAPI.Models
             return new AmazonDynamoDBClient(credentials, RegionEndpoint.EUWest1);
         }
 
-        private async void InitializeContext()
+        private async void InitializeTable()
         {
             var tableList = await client.ListTablesAsync();
             if (!tableList.TableNames.Contains(TABLE_NAME))
                 await CreateTable();
 
             await WaitForTableToBeActive();
-            context = new DynamoDBContext(client);
         }
 
         private async Task CreateTable()
@@ -94,7 +127,7 @@ namespace InvertedxAPI.Models
             {
                 var tableStatus = await client.DescribeTableAsync(TABLE_NAME);
                 isTableActive = tableStatus.Table.TableStatus == "ACTIVE";
-                Thread.Sleep(200);
+                Thread.Sleep(1000);
             }
         }
     }
