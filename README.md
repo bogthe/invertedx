@@ -8,7 +8,7 @@ It takes in URLs, processes their content and creates an inverted index based on
 ### Data storage
 - DynamoDB storage for website urls using Object Persistance Model; 
 - Set up the DB IAM access and secret keys using `user-secrets`;
-
+- Store the inverted index; **HIGHLY INEFFICIENT** tread carefully.
 
 ### WebAPI
 **Website**
@@ -31,6 +31,4 @@ It takes in URLs, processes their content and creates an inverted index based on
 - Creates a simple inverted index data structure and populates it;
 
 ## Roadmap
-- Connect to NoSQL DB:
-    - Store the inverted index;
 - Frontend website;
