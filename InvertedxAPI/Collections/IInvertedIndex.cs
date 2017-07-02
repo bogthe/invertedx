@@ -6,5 +6,6 @@ namespace InvertedxAPI.Collections
     {
         HashSet<T> this[string id] { get; }
         bool ContainsKey(string key);
+        IEnumerator<string> GetKeys();
     }
 }

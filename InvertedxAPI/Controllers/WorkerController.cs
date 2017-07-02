@@ -11,13 +11,16 @@ namespace InvertedxAPI.Controllers
     public class WorkerController : Controller
     {
         private IAsyncRepository repository { get; set; }
+        private IIndexRepository indexRepository {get;set;}
         private IHttpHandler httpHandler;
 
-        public WorkerController(IAsyncRepository repo)
+        public WorkerController(IAsyncRepository repo, IIndexRepository indexRepo)
         {
-            repository = repo;
             httpHandler = new HttpHandler();
-            repository.Initialisation.Wait();
+            
+            repository = repo;
+            indexRepository = indexRepo;
+            Task.WaitAll(repository.Initialisation, indexRepository.Initialisation);
         }
 
         [HttpGet("{id}")]
@@ -30,8 +33,9 @@ namespace InvertedxAPI.Controllers
                     return NotFound();
 
                 string websiteContent = await worker.GetWebsiteContent(website, ContentProcessor);
-                worker.PopulateIndex(repository.Index, websiteContent, website);
+                worker.PopulateIndex(indexRepository.Index, websiteContent, website);
                 await repository.UpdateWebsite(website);
+                await indexRepository.UpdateRepo();
 
                 return Ok();
             }

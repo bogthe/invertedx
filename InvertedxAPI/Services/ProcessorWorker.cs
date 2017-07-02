@@ -33,15 +33,15 @@ namespace InvertedxAPI.Services
             return extractor.Invoke(content);
         }
         
-        public void PopulateIndex(InvertedIndex<Website> index, string content, Website web)
+        public void PopulateIndex(InvertedIndex<string> index, string content, Website web)
         {
             foreach(var word in content.Split(' '))
             {
                 string key = ProcessKey(word);
                 if(!index.ContainsKey(key))
-                    index.Add(key, new HashSet<Website>());
+                    index.Add(key, new HashSet<string>());
                 
-                index[key].Add(web);
+                index[key].Add(web.Url);
             }
         }
 

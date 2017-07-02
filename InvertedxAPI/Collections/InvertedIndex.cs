@@ -10,9 +10,10 @@ namespace InvertedxAPI.Collections
         {
             get => items[id];
         }
-
+        
         public void Add(string key, HashSet<T> newValue) => items.Add(key, newValue);
         
         public bool ContainsKey(string key) => items.ContainsKey(key);
+        public IEnumerator<string> GetKeys() => items.Keys.GetEnumerator();
     }
 }

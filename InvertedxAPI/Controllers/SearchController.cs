@@ -7,16 +7,16 @@ namespace InvertedxAPI.Controllers
     [Route("api/[controller]")]
     public class SearchController : Controller
     {
-        private IAsyncRepository repository { get; set; }
+        private IIndexRepository repository { get; set; }
 
-        public SearchController(IAsyncRepository repo)
+        public SearchController(IIndexRepository repo)
         {
             repository = repo;
             repository.Initialisation.Wait();
         }
 
         [HttpGet("{id}")]
-        public IEnumerable<Website> Get(string id) 
-            => repository.Index.ContainsKey(id) ? repository.Index[id] : new HashSet<Website>();
+        public IEnumerable<string> Get(string id) 
+            => repository.Index.ContainsKey(id) ? repository.Index[id] : new HashSet<string>();
     }
 }
