@@ -28,7 +28,7 @@ namespace InvertedxAPI.Models
                 options.Value.AwsAccessKey, options.Value.AwsSecretKey, RegionEndpoint.EUWest1
             );
             context = new DynamoDBContext(client);
-            throttler = new DBThrottler<IndexItem>(context, 10, 500);
+            throttler = new DBThrottler<IndexItem>(context, 60, 100);
             
             Initialisation = AsyncInitialise();
         }

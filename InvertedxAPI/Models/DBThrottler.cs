@@ -11,7 +11,7 @@ namespace InvertedxAPI.Models
         private DynamoDBContext context;
         private readonly int maxBatchWrite;
         private List<BatchWrite<T>> items;
-        
+
         private int currentItemSlot;
         private int itemsInBatch;
         private int sleepTimeMs;
@@ -20,7 +20,7 @@ namespace InvertedxAPI.Models
 
         public DBThrottler(DynamoDBContext dynamoContext, int maxBatchNo, int sleepTimeMs)
         {
-            
+
             context = dynamoContext;
             maxBatchWrite = maxBatchNo;
             this.sleepTimeMs = sleepTimeMs;
@@ -45,14 +45,22 @@ namespace InvertedxAPI.Models
         public async Task SaveBatches()
         {
             Console.WriteLine($"Bathces: {items.Count}");
-            foreach(var batchWrite in items)
+            foreach (var batchWrite in items)
             {
-                Console.WriteLine("Saving batch...");
-                await batchWrite.ExecuteAsync();
-                if(sleepTimeMs > 0)
-                    Thread.Sleep(sleepTimeMs);
+                try
+                {
+                    Console.WriteLine("Saving batch...");
+                    await batchWrite.ExecuteAsync();
+                    if (sleepTimeMs > 0)
+                        Thread.Sleep(sleepTimeMs);
+                }
+                catch
+                {
+                    Console.WriteLine("Your information has been throtteled by the Amazon servers.");
+                    Console.WriteLine("Either change the server throttler limits or set the DynamoDB write capacity higher.");
+                }
             }
-        }   
+        }
 
         public void Dispose()
         {
@@ -61,10 +69,10 @@ namespace InvertedxAPI.Models
 
         private void Dispose(bool isDisposing)
         {
-            if(!disposingItems)
+            if (!disposingItems)
             {
                 disposingItems = true;
-                if(isDisposing)
+                if (isDisposing)
                 {
                     items = null;
                     context = null;
