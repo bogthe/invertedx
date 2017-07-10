@@ -9,7 +9,8 @@ import { WebsiteDetailComponent } from './website-detail/website-detail.componen
 
 const routes: Routes = [
   { path: 'invertedx', component: IndvertedxComponent },
-  { path: 'websites', component: WebsitesComponent }
+  { path: 'websites', component: WebsitesComponent },
+  { path: 'websites/:id', component: WebsiteDetailComponent }
 ];
 
 @NgModule({
