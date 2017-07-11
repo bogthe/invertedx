@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./websites.component.css']
 })
 export class WebsitesComponent implements OnInit {
+  isAddingWebsite:boolean;
 
   constructor(private router:Router) { }
 
@@ -17,4 +18,7 @@ export class WebsitesComponent implements OnInit {
     this.router.navigate(['/websites', 'loveangular']);
   }
 
+  toggleWebModal(){
+    this.isAddingWebsite = !this.isAddingWebsite;
+  }
 }

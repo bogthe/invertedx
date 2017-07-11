@@ -1,9 +1,43 @@
-<h2>Websites</h2>
+<div class="container">
+  <div class="notification">
+    <a (click)="toggleWebModal()" class="button is-primary">+ add website</a>
 
-<div>
-  <button>Add websites</button>
+  </div>
 </div>
-<hr />
-<div>
-  <button>Delete</button> <button (click)="navigateTo()">Process</button> Processed: True, Url:google.com
+
+<div class="container is-fluid">
+  <div class="notification">
+    <div>
+      <span class="tag is-medium is-success">
+        google.com
+        <button class="delete"></button>
+      </span>
+
+      <span class="tag is-medium is-warning">
+        <a (click)="navigateTo()">amazon.com</a>
+        <button class="delete"></button>
+      </span>
+      
+      <span (click)="navigateTo()" class="tag is-medium is-warning">
+        <a (click)="navigateTo()">microsoft.com</a>
+        <button class="delete"></button>
+  </span>
+    </div>
+  </div>
+</div>
+
+<div class="{{isAddingWebsite ? 'modal is-active' : 'modal'}}">
+  <div (click)="toggleWebModal()" class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Add website</p>
+    </header>
+    <section class="modal-card-body">
+      Some details
+    </section>
+    <footer class="modal-card-foot">
+      <a (click)="toggleWebModal()" class="button is-success">Save changes</a>
+      <a (click)="toggleWebModal()" class="button">Cancel</a>
+    </footer>
+  </div>
 </div>

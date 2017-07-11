@@ -1,5 +1,19 @@
-<nav>
-  <a routerLink="/invertedx" routerLinkActive="active">Inverted Index Search</a>
-  <a routerLink="/websites" routerLinkActive="active">Manage websites</a>
+<section class="hero is-primary">
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title">
+        Inverted Index
+      </h1>
+      <h2 class="subtitle">
+        A simple man's implementation
+      </h2>
+    </div>
+  </div>
+</section>
+<nav class="breadcrumb is-centered">
+  <ul>
+    <li routerLinkActive="is-active"><a routerLink="/invertedx">Inverted Index Search</a></li>
+    <li routerLinkActive="is-active"><a routerLink="/websites">Manage websites</a></li>
+  </ul>
 </nav>
 <router-outlet></router-outlet>
