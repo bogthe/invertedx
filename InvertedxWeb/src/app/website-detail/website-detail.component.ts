@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Website } from '../models/website';
+import { WebsiteService } from '../website.service';
 
 @Component({
   selector: 'app-website-detail',
@@ -7,13 +9,13 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./website-detail.component.css']
 })
 export class WebsiteDetailComponent implements OnInit {
-  id: string;
+  website: Website;
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(private route: ActivatedRoute, private webService:WebsiteService) { }
 
   ngOnInit() {
     this.route.params.subscribe(
-      params => this.id = params["id"]
+      params => this.website = this.webService.getWebsiteById(params["id"])
     );
   }
 }
